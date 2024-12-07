@@ -1,15 +1,11 @@
 import streamlit as st
 from main import IR_Ret_Sys
+from llama_tokenise_rag import summarize_documents_with_query
 
 IR = IR_Ret_Sys()
 
-def generate_ai_summary(query):
-    return (
-        f"This is an AI-generated overview for the query: '{query}'. It provides a concise summary of the most relevant information. "
-        f"This overview includes a lot of details about the topic, helping users quickly grasp the most important aspects. "
-        f"Here we discuss multiple facets of the query in depth, providing insights and additional context to make the information "
-        f"more comprehensive and valuable."
-    )
+def generate_ai_summary(query, abstracts):
+    return summarize_documents_with_query(query, abstracts, IR.text_gen_pipeline)
 
 
 def get_search_results(query):
@@ -81,8 +77,10 @@ else:
     query = st.text_input("Search Query:", placeholder="Type your query here...", value=query)
 
     if query:
-        with st.spinner("Generating summary..."):
-            ai_summary = generate_ai_summary(query)
+        with st.spinner("Fetching results..."):
+            search_results = get_search_results(query)
+            with st.spinner("Generating summary..."):
+                ai_summary = generate_ai_summary(query, search_results)
         
         preview_length = 200
         if len(ai_summary) > preview_length:
@@ -126,8 +124,6 @@ else:
                 st.session_state["show_full_summary"] = not st.session_state["show_full_summary"]
 
 
-        with st.spinner("Fetching results..."):
-            search_results = get_search_results(query)
 
         st.subheader("Top 20 Results")
         for i, result in enumerate(search_results):
