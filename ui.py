@@ -1,5 +1,7 @@
 import streamlit as st
+from main import IR_Ret_Sys
 
+IR = IR_Ret_Sys()
 
 def generate_ai_summary(query):
     return (
@@ -11,9 +13,15 @@ def generate_ai_summary(query):
 
 
 def get_search_results(query):
+    #### Check which Query function to use! ####
+    docid_score = IR.TFIDFRanker.query_augmented('Show me papers by Ashish Vaswani on Machine Learning before 2020')
     results = [
-        {"title": f"Result {i+1} Title", "link": f"https://example.com/result{i+1}", "snippet": f"Snippet for result {i+1}"}
-        for i in range(20)
+        {
+        'title': IR.docid_title_map.get(i[0]),
+        'link' : IR.docid_link_map.get(i[0]),
+        'snippet': IR.docid_abstract_map.get(i[0])
+        }
+        for i in docid_score[:100]
     ]
     return results
 
