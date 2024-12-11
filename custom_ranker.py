@@ -32,6 +32,16 @@ class Ranker:
         self.docid_to_year = docid_to_year
         self.docid_to_abstract = docid_to_abstract
 
+
+    # Random Baseline
+    # returns 1000 random (docid, score) tuples    
+    def query_random(self, query: str) -> list[tuple[int, float]]:
+        import random
+        return [(i,10) for i in random.sample(range(92000), 1000)]
+        
+        
+        
+
     def query(self, query: str) -> list[tuple[int, float]]:
         """
         Searches the collection for relevant documents to the query and
