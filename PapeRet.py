@@ -29,7 +29,7 @@ def get_search_results(query, use_llama=False):
             'link': IR.docid_link_map.get(i[0]),
             'snippet': IR.docid_abstract_map.get(i[0])[:250]+"..."
         }
-        for i in docid_score[1:25] if len(IR.docid_abstract_map.get(i[0], ""))>0
+        for i in docid_score[:25] if len(IR.docid_abstract_map.get(i[0], ""))>0
     ]
     return results
 
