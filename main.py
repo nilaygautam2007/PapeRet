@@ -9,7 +9,7 @@ from indexing import Indexer, IndexType, BasicInvertedIndex
 from custom_ranker import Ranker, BM25, TF_IDF
 import relevance
 
-from llama_tokenise import setup_pipeline
+from llama_tokenise_rag import setup_pipeline
 
 
 class IR_Ret_Sys:

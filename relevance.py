@@ -88,21 +88,26 @@ def run_relevance_tests(relevance_df, ranker) -> dict[str, float]:
         A dictionary containing both MAP and NDCG scores
     """
     import pandas as pd
-    # relevance_df = pd.read_csv(relevance_data_filename)
+    from tqdm import tqdm
+    from llama_tokenise_rag import setup_pipeline
+
+    print('Setting up Llama Pipeline.')
+    text_gen_pipeline = setup_pipeline()
+    print('Initialization Complete.')
     
     map_scores = []
     ndcg_scores = []
 
-    queries = list(set(relevance_df['query']))
+    queries = list(set(relevance_df['Query']))
 
-    for query in queries:
-        print(query)
-        doc_rel_dict = relevance_df.loc[relevance_df['query'] == query, ['docid', 'rel']].set_index('docid')['rel'].to_dict()
+    for query in tqdm(queries):
+        doc_rel_dict = relevance_df.loc[relevance_df['Query'] == query, 
+        ['doc_id', 'Lower limit relevance score']].set_index('doc_id')['Lower limit relevance score'].to_dict()
+        
         relevances = list(doc_rel_dict.values())
         ideal_relevances = sorted(relevances, reverse=True)
 
-        search_results = ranker.query(query)
-        print(search_results[:20])
+        search_results = ranker.query_llama(text_gen_pipeline=text_gen_pipeline, query=query) ##############################
 
         search_result_relevances_map = []
         search_result_relevances_ndcg = []
@@ -126,55 +131,54 @@ if __name__ == '__main__':
     # import seaborn as sns
     # import matplotlib.pyplot as plt
     from tqdm import tqdm
+    import pickle
     from document_preprocessor import RegexTokenizer
     from indexing import Indexer, IndexType, BasicInvertedIndex
-    from ranker import Ranker, WordCountCosineSimilarity, DirichletLM, BM25, PivotedNormalization, TF_IDF, CubeRootRanker
+    from custom_ranker import Ranker, BM25, TF_IDF
 
     with open("stopwords.txt", "r") as file:
         stopwords = [line.strip() for line in file]
+
+    with open('docid_authors_map.pkl', 'rb') as f:
+        docid_authors_map = pickle.load(f)
+    with open('all_authors.pkl', 'rb') as f:
+        all_authors = pickle.load(f)
+    with open('docid_year_map.pkl', 'rb') as f:
+        docid_year_map = pickle.load(f)
+
+    with open('docid_title_map.pkl', 'rb') as f:
+        docid_title_map = pickle.load(f)
+    with open('docid_link_map.pkl', 'rb') as f:
+        docid_link_map = pickle.load(f)
+    with open('docid_abstract_map.pkl', 'rb') as f:
+        docid_abstract_map = pickle.load(f)
     
+    
+    preprocessor = RegexTokenizer()
+    
+    print('Loading Index')
+    index = BasicInvertedIndex()
+    index.load('all_papers_index')
+    
+    print('Loading Title Index')
+    title_index = BasicInvertedIndex()
+    title_index.load('all_papers_title_index')
+    
+    BMRanker = Ranker(index, title_index, preprocessor, stopwords=stopwords, scorer=BM25(index), 
+                      all_authors=list(all_authors), docid_to_authors=docid_authors_map, docid_to_year=docid_year_map,
+                           docid_to_abstract = docid_abstract_map)
+    
+    TFIDFRanker = Ranker(index, title_index, preprocessor, stopwords=stopwords, scorer=TF_IDF(index),
+                        all_authors=list(all_authors), docid_to_authors=docid_authors_map, docid_to_year=docid_year_map, 
+                              docid_to_abstract = docid_abstract_map)
+
     preprocessor = RegexTokenizer()
 
     import json
 
-    # print('Reading JSON file.')
-    # with open("arxiv_papers.json", "r") as json_file:
-    #     data = json.load(json_file)
-    
-    # # Write data to JSONL file
-    # print('Converting to JSONL')
-    # with open("arxiv_papers.jsonl", "w") as jsonl_file:
-    #     for entry in data:
-    #         jsonl_file.write(json.dumps(entry) + "\n")
-
-
-    # print('Creating Index')
-    # index = Indexer.create_index(IndexType.BasicInvertedIndex, 'arxiv_papers.jsonl', 
-    #                              preprocessor, stopwords=stopwords, minimum_word_frequency=50)
-    # print('Index Created')
-
-    # print('Saving Index')
-    # index.save('arxiv_papers_index')
-
-    print('Loading Index')
-    index = BasicInvertedIndex()
-    index.load('arxiv_papers_index')
-
-    #####
-    # CosineRanker = Ranker(index, preprocessor, stopwords=stopwords, scorer=WordCountCosineSimilarity(index))
-    # DirichletRanker = Ranker(index, preprocessor, stopwords=stopwords, scorer=DirichletLM(index))
-    BMRanker = Ranker(index, preprocessor, stopwords=stopwords, scorer=BM25(index))
-    # PivotRanker = Ranker(index, preprocessor, stopwords=stopwords, scorer=PivotedNormalization(index))
-    TFIDFRanker = Ranker(index, preprocessor, stopwords=stopwords, scorer=TF_IDF(index))
-    # CubeRootRanker = Ranker(index, preprocessor, stopwords=stopwords, scorer=CubeRootRanker(index))
-
     rankers = {
-        # 'WordCountCosineSimilarity' : CosineRanker,
         'TF_IDF' : TFIDFRanker,
-        # 'PivotedNormalization' : PivotRanker,
         'BM25' : BMRanker,
-        # 'DirichletLM' : DirichletRanker,
-        # 'MyRanker : CubeRootTF_BM25IDF_Ranker' : CubeRootRanker
     }
 
     results = {'ranker': [], 'MAP': [], 'NDCG': []}
@@ -182,18 +186,13 @@ if __name__ == '__main__':
     all_ndcg_scores = []
     ranker_names = []
 
-    # rel_0 = pd.read_csv('rel_0.csv')
-    # rel_0 = rel_0[rel_0['query']!="Research on Reinforcement Learning techniques"]
-
-    # rel_1 = pd.read_csv('rel_1.csv')
-
-    # doped_df = pd.concat([rel_0, rel_1], ignore_index=True)
-
-    doped_df = pd.read_csv('relevance_test.csv')
+    df1 = pd.read_csv('Relevance_queries_0_20.csv')
+    df2 = pd.read_csv('Relevance_queries_20_40-2.csv')
+    df = pd.concat([df1, df2])
     
     
     for ranker_name, ranker_type in tqdm(rankers.items()):
-        scores = run_relevance_tests(doped_df, ranker_type)
+        scores = run_relevance_tests(df, ranker_type)
         
         results['ranker'].append(ranker_name)
         results['MAP'].append(scores['map'])
@@ -210,7 +209,7 @@ if __name__ == '__main__':
     
     print("\nAverage Performance of Each Ranker:")
     print(results_df)
-    results_df.to_csv("final_results.csv", index=False)
+    results_df.to_csv("final_results_query_llama.csv", index=False) ###########################
     print("Results data has been saved to 'final_results.csv'.")
 
 
@@ -220,7 +219,7 @@ if __name__ == '__main__':
         'score': all_map_scores + all_ndcg_scores 
     }
     plot_df = pd.DataFrame(plot_data)
-    plot_df.to_csv("plot_data.csv", index=False)
+    plot_df.to_csv("plot_data_query_llama.csv", index=False) ##############################
     print("Plot data has been saved to 'plot_data.csv'.")
 
 

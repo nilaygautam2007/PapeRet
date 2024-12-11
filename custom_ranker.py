@@ -262,9 +262,9 @@ class Ranker:
             A sorted list containing tuples of the document id and its relevance score
 
         """
-        print('LLAMA QUERY')
+        # print('LLAMA QUERY')
         from tqdm import tqdm
-        from llama_tokenise import setup_pipeline, extract_details
+        from llama_tokenise_rag import setup_pipeline, extract_details
         import ast
         import re
         from collections import defaultdict
@@ -272,11 +272,11 @@ class Ranker:
         # query_tokens = self.tokenize(query)
         query = query.lower()
         text_sample = f'Input Query: "{query}"'
-        text_gen_pipeline = setup_pipeline()
+        # text_gen_pipeline = setup_pipeline()
 
         
         query_dict = extract_details(text_sample, text_gen_pipeline)
-        print('query_dict: \t ', query_dict)
+        # print('query_dict: \t ', query_dict)
         # query_tokens = query_dict.get('keywords', [])
         # query_tokens_wo_stopwords = query_tokens
 
@@ -361,21 +361,24 @@ class Ranker:
         # Step 4: Extract authors mentioned in the query
         authors_in_query_caps = query_dict.get('author', [])
         authors_in_query = [a.lower() for a in authors_in_query_caps]
-        print('authors_in_query: \t', authors_in_query)
+        # print('authors_in_query: \t', authors_in_query)
         
         # Step 5: Extract years mentioned in the query
-        years_in_query = query_dict.get('year', '')
-        if len(years_in_query)>0:
-            if 'until' in years_in_query:
-                relevant_years = [year for year in range(1950, int(years_in_query.replace('until ',''))+2 )]
-            elif 'onwards' in years_in_query:
-                relevant_years = [year for year in range(int(years_in_query.replace(' onwards','')), 2026)]
+        try:
+            years_in_query = query_dict.get('year', '')
+            if len(years_in_query)>0:
+                if 'until' in years_in_query:
+                    relevant_years = [year for year in range(1950, int(years_in_query.replace('until ',''))+2 )]
+                elif 'onwards' in years_in_query:
+                    relevant_years = [year for year in range(int(years_in_query.replace(' onwards','')), 2026)]
+                else:
+                    relevant_years = [int(years_in_query)]
             else:
-                relevant_years = [int(years_in_query)]
-        else:
+                relevant_years = []
+        except:
             relevant_years = []
 
-        print('relevant_years: \t', relevant_years)
+        # print('relevant_years: \t', relevant_years)
     
     
         # Step 6: Filter and rerank top 10000 scored docs
