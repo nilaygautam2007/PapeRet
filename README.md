@@ -76,7 +76,7 @@ IR_Project/
 3. Set up necessary data files in the directory:
    - Place `.pkl`, `index` files for mappings.
    - Add `stopwords.txt` for stopword filtering.
-   - Files can be found [here.](https://drive.google.com/drive/folders/131ffNJDOY0wx-YzeaOj2EZIw8HPP9nkR?usp=share_link)
+   - Download the files from [this link](https://drive.google.com/drive/folders/131ffNJDOY0wx-YzeaOj2EZIw8HPP9nkR?usp=share_link).
 
 4. Add login key for huggingface_hub for in setup_pipeline function in llama_tokenise_rag.py 
 
@@ -92,21 +92,14 @@ streamlit run PapeRet.py
 ```
 The app interface allows you to:
 - Input search queries and retrieve results.
-- Toggle LLAMA integration for enhanced query processing and AI-generated summaries.
+- Toggle LLAMA integration for enhanced query processing
+- View and expand AI-generated summaries tailored to your query.
 
 ---
 
 ## Results
 The system achieves high precision and recall across multiple datasets. Evaluation results include:
 - Mean Average Precision (MAP) and NDCG metrics.
-- CSV outputs for analysis (`results/final_results.csv`).
-
----
-
-## Future Work
-- Integrate deep learning-based rankers for improved scoring.
-- Enhance real-time query recommendations.
-- Extend support for multilingual datasets.
 
 ---
 
