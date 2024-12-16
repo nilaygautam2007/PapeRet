@@ -43,7 +43,6 @@ IR_Project/
 ├── docid_authors_map.pkl     # Mapping of document IDs to authors
 ├── docid_link_map.pkl        # Mapping of document IDs to urls
 ├── docid_title_map.pkl       # Mapping of document IDs to titles
-├── docid_year_map.pkl        # Mapping of document IDs to years
 ├── docid_abstract_map.pkl    # Mapping of document IDs to abstracts
 ├── docid_year_map.pkl        # Mapping of document IDs to publication years
 ├── stopwords.txt             # List of stopwords for filtering
@@ -54,7 +53,7 @@ IR_Project/
 ├── custom_ranker.py          # Ranking and scoring algorithms
 ├── relevance.py              # Relevance evaluation and testing
 ├── llama_tokenise_rag.py     # LLAMA integration for summarization and query extraction
-├── relevance.py              # Rough notebook used to create miscellaneous files and tests 
+├── scratch_and_other_prep.ipynb # Rough notebook used to create miscellaneous files and tests 
 ├── ArXiv/                    # Scripts for obtaining paper corpus and text from ArXiv.
 ├── OpenAlex/                 # Scripts for fetching metadata of seed papers, their references, and scraping text from 15 websites.
 └── README.md                 # Project documentation
